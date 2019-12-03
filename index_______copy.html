@@ -2,7 +2,7 @@
 <html style="height: 100%" lang="en">
 <head>
     <meta charset="utf-8">
-    <script type="text/javascript" src="./js/echarts.js"></script>
+    <script type="text/javascript" src="./js/echarts-en.js"></script>
     <script type="text/javascript" src="./js/papaparse.min.js"></script>
     <title>Here is the title</title>
 </head>
@@ -14,12 +14,6 @@
     let myChart = echarts.init(dom);
     let app = {};
     option = {
-        tooltip: {
-            trigger: 'axis',
-            position: function (pt) {
-                return [pt[0], '10%'];
-            }
-        },
         title: {
             left: 'center',
             text: "I'm title",
