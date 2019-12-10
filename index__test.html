@@ -12,7 +12,6 @@
 <script type="text/javascript">
     let dom = document.getElementById("container");
     let myChart = echarts.init(dom);
-    let app = {};
     option = {
         title: {
             left: 'center',
@@ -62,7 +61,7 @@
             {
                 id: "point",
                 symbolSize: 0,
-                data: [],
+                data: [[0, 6], [1, 1], [2, 2], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 10], [9, 15], [10, 12], [11, 13], [12, 9], [13, 8]],
                 type: 'scatter'
             },
             {
@@ -70,7 +69,24 @@
                 smooth: true,
                 symbol: 'none',
                 sampling: 'average',
-                data: []
+                data: [[0, 6], [1, 1], [2, 2], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 10], [9, 15], [10, 12], [11, 13], [12, 9], [13, 8]],
+
+                markArea: {
+                    id: 'redArea',
+                    label: {
+                        normal: {
+                            // position: 'right'
+                        }
+                    },
+                    data: [
+                        [{
+                            name: [],
+                            xAxis: []
+                        }, {
+                            xAxis: []
+                        }]
+                    ]
+                }
             }
         ]
     };
@@ -82,53 +98,56 @@
         e.preventDefault();
     };
 
+    document.oncontextmenu = function(e){
+        e.preventDefault();
+    };
+
     dom.ondragover = function (e) {
         e.preventDefault();
     };
 
+
+    /**
+     * On-drop Loading Function
+     * Load data from incoming file
+     */
     dom.ondrop = function (e) {
-        let list = e.dataTransfer.files;
-        let f = list[0];
-        myChart.showLoading();
-        Papa.parse(f, {
-            complete: function (results) {
-                let data = [];
-                for (let i = 0; i < 650000; i++) {
-                    data.push([i, results.data[0][i]]);
+        data = [];
+        for (let i = 1; i < 12; i = i + 3) {
+            data.push([{name: i, xAxis: i}, {xAxis: i + 1}])
+        }
+        console.log(data);
+        myChart.setOption({
+            series: [
+                {},
+                {
+                    markArea: {
+                        id: 'redArea',
+                        data: data
+                    }
                 }
-                myChart.hideLoading();
-                console.log(f.name);
-                myChart.setOption({
-                    series: [
-                        {
-                            data: data
-                        },
-                        {
-                            data: data
-                        }
-                    ]
-                });
-            }
+            ]
         });
     };
 
-    myChart.on('brushSelected', renderBrushed);
-    myChart.on('contextmenu', showMenu);
-
-    function showMenu(param) {
-        // let data = [param['data']['coord'][0][0], param['data']['coord'][1][0]];
-        console.log('param===', param);
-    }
-
-    function renderBrushed(params) {
-        let brushComponent = params.batch[0];
-        let rawIndices = brushComponent.selected[0].dataIndex;
-        console.log([rawIndices[0], rawIndices[rawIndices.length - 1]]);//print start and end index of data point
-    }
+    /**
+     * Brush function
+     */
+    // myChart.on('brushSelected', renderBrushed);
+    //
+    // function renderBrushed(params) {
+    //     let brushComponent = params.batch[0];
+    //     let rawIndices = brushComponent.selected[0].dataIndex;
+    //     console.log([rawIndices[0], rawIndices[rawIndices.length - 1]]);//print start and end index of data point
+    // }
 
     if (option && typeof option === "object") {
         myChart.setOption(option, true);
     }
+
+    /**
+     * 测试用myChart.setOption添加多个标域
+     */
 </script>
 </body>
 </html>
