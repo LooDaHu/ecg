@@ -136,7 +136,6 @@ inputElement.addEventListener("change", loadLabelFile, false);
 
 function loadLabelFile() {
     let selectedFile = document.getElementById("file_selector").files[0];//获取读取的File对象
-    fileNameECG = selectedFile.name;
     let reader = new FileReader();// read the file
     reader.readAsText(selectedFile);// read the content of the file
 
@@ -192,7 +191,7 @@ function saveHandler() {
 function get_current_time() {
     let date = new Date();
     return date.getFullYear() + "_"
-        + date.getMonth() + "_"
+        + (date.getMonth() + 1) + "_"
         + date.getDate() + "_"
         + date.getHours() + "_"
         + date.getMinutes() + "_"
