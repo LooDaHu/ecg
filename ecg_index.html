@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html style="height: 100%" lang="en">
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="./js/echarts-en.js"></script>
+    <script type="text/javascript" src="./js/papaparse.min.js"></script>
+    <script type="text/javascript" src="./js/FileSaver.js"></script>
+    <title>ECG</title>
+</head>
+<body>
+<div id="container" style="width: 1850px; height: 700px;"></div>
+<br>
+<div id="add-btn-grp">Add Label:&nbsp;&nbsp;</div>
+<br>
+<div id="type-select-btn-grp">Modify Label:&nbsp;&nbsp;
+</div>
+<br>
+<div id="del-btn-grp">Delete Label:&nbsp;&nbsp;
+    <button id="del_btn" type="button">Delete</button>
+</div>
+<p id="selector">Current Selected Label:</p>
+<div>
+    <input type="file" id="file_selector" value="Select File">
+    <input type="button" id="save_file" value="Save">
+</div>
+<script type="text/javascript" src="js/ecg.js"></script>
+</body>
+</html>

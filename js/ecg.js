@@ -8,7 +8,12 @@ let option;
 //     [{id: 2, name: 'Test2', xAxis: 11,}, {xAxis: 13}]];
 let labelData = [];
 let labelDataDisplay = [];
-const colorSet = {"A": '#FF0000', "B": '#00FF00', "C": '#0000FF', "": '#808080'};
+const labelSet = {"Q": '#FF00F0', "N": '#F0FF00', "R": '#00F0FF', "B": '#02FF00'};
+const defaultColor = '#808080';
+
+addButtonSetUp();
+modButtonSetUp();
+
 dom.oncontextmenu = function () {
     return false;
 };
@@ -27,7 +32,7 @@ dom.ondragover = function (e) {
 option = {
     title: {
         left: 'center',
-        text: "I'm title",
+        text: [],
     },
     toolbox: {
         feature: {
@@ -73,7 +78,6 @@ option = {
         {
             id: "point",
             symbolSize: 0,
-            // data: [[0, 6], [1, 1], [2, 2], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 10], [9, 15], [10, 12], [11, 13], [12, 9], [13, 8]],
             data: [],
             type: 'scatter'
         },
@@ -82,7 +86,6 @@ option = {
             smooth: true,
             symbol: 'none',
             sampling: 'average',
-            // data: [[0, 6], [1, 1], [2, 2], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 10], [9, 15], [10, 12], [11, 13], [12, 9], [13, 8]],
             data: [],
 
             markArea: {
@@ -136,38 +139,41 @@ inputElement.addEventListener("change", loadLabelFile, false);
 
 function loadLabelFile() {
     let selectedFile = document.getElementById("file_selector").files[0];//获取读取的File对象
-    let reader = new FileReader();// read the file
-    reader.readAsText(selectedFile);// read the content of the file
-
-    reader.onload = function () {
-        let label_data_display = [];
-        let result = this.result;
-        let json_data = JSON.parse(result).data;
-        let size_of_data = json_data.length;
-        for (let i = 0; i < size_of_data; i++) {
-            let id = json_data[i].id;
-            let type = json_data[i].type;
-            let start_x = json_data[i]["start_index"];
-            let end_x = json_data[i]["end_index"];
-            let name = "Label Id: " + id + "\n" + "Label Type: " + type;
-            let color = colorSet[type];
-            label_data_display.push(
-                [{
-                    id: id,
-                    name: name,
-                    xAxis: start_x,
-                    itemStyle: {
-                        color: color
-                    }
-                }, {
-                    xAxis: end_x
-                }]
-            );
+    // let reader = new FileReader();// read the file
+    // reader.readAsText(selectedFile);// read the content of the file
+    Papa.parse(selectedFile, {
+        complete: function (results) {
+            // console.log(results.data);
+            // console.log(results.data.length);
+            let csv_data = results.data;
+            let size_of_data = results.data.length;
+            let label_data_display = [];
+            for (let i = 1; i < size_of_data; i++) {
+                let id = csv_data[i][0];
+                let type = csv_data[i][1];
+                let start_x = csv_data[i][2];
+                let end_x = csv_data[i][3];
+                let name = "Label Id: " + id + "\n" + "Label Type: " + type;
+                let color = labelSet[type];
+                label_data_display.push(
+                    [{
+                        id: id,
+                        name: name,
+                        xAxis: start_x,
+                        itemStyle: {
+                            color: color
+                        }
+                    }, {
+                        xAxis: end_x
+                    }]
+                );
+            }
+            labelDataDisplay = label_data_display;
+            labelData = csv_data;
+            refreshAllLabel();
         }
-        labelDataDisplay = label_data_display;
-        labelData = json_data;
-        refreshAllLabel();
-    };
+    });
+
 }
 
 /**
@@ -183,9 +189,11 @@ function saveHandler() {
     }
     let current_time = '_' + get_current_time();
     let file_name = fileNameECG.split('.')[0];
-    let content = JSON.stringify({data: labelData});
-    let blob = new Blob([content], {type: "text/plain;charset=utf-8"});
-    saveAs(blob, file_name + current_time + ".json");
+    let csvData = labelData.map(e => e.join(",")).join("\n");
+    let BOM = "\uFEFF";
+    csvData = BOM + csvData;
+    let blob = new Blob([csvData], {type: "text/csv;charset=utf-8"});
+    saveAs(blob, file_name + current_time + ".csv");
 }
 
 function get_current_time() {
@@ -201,18 +209,21 @@ function get_current_time() {
 /**
  * This part is used to add Label
  */
-let btnAddA = document.getElementById("a_add_btn");
-btnAddA.addEventListener("click", function () {
-    addLabel('A')
-}, false);
-let btnAddB = document.getElementById("b_add_btn");
-btnAddB.addEventListener("click", function () {
-    addLabel('B')
-}, false);
-let btnAddC = document.getElementById("c_add_btn");
-btnAddC.addEventListener("click", function () {
-    addLabel('C')
-}, false);
+
+function addButtonSetUp() {
+    let add_btn_grp = document.getElementById("add-btn-grp");
+    Object.keys(labelSet).forEach(function (type) {
+        let add_btn = document.createElement("button");
+        add_btn.id = type + "_add_btn";
+        add_btn.innerHTML = type + "-label";
+        add_btn.addEventListener("click", function () {
+            addLabel(type)
+        }, false);
+        add_btn.style.marginRight = "15px";
+        add_btn_grp.append(add_btn);
+    });
+}
+
 
 function addLabel(type) {
     if (selectedMarkAreaIndex.length === 0) {
@@ -224,7 +235,7 @@ function addLabel(type) {
         return;
     }
     let id = getLastId() + 1;
-    let color = colorSet[type];
+    let color = labelSet[type];
     let start_index = selectedMarkAreaIndex[0];
     let end_index = selectedMarkAreaIndex[1];
     labelDataDisplay.push(
@@ -239,24 +250,20 @@ function addLabel(type) {
             xAxis: end_index
         }]
     );
-    labelData.push(
-        {
-            "id": id,
-            "type": type,
-            "start_index": start_index,
-            "end_index": end_index
-        }
-    );
+    if (id === 1 && labelData.length === 0) {
+        labelData.push(["id", "type", "start_index", "end_index"]);
+    }
+    labelData.push([id, type, start_index, end_index]);
 
     selectedMarkAreaIndex = [];
     refreshAllLabel();
 }
 
 function getLastId() {
-    if (labelData.length === 0) {
+    if (labelData.length === 0 || labelData.length === 1) {
         return 0;
     } else {
-        return labelData[labelData.length - 1].id;
+        return Number(labelData[labelData.length - 1][0]);
     }
 }
 
@@ -275,8 +282,8 @@ function delLabel() {
     if (labelData.length === 0) {
         window.alert("No label left.");
     }
-    for (let i = 0; i < labelData.length; i++) {
-        if (labelData[i].id === selectedLabelId) {
+    for (let i = 1; i < labelData.length; i++) {
+        if (labelData[i][0] === selectedLabelId) {
             labelData.splice(i, 1);
         }
     }
@@ -296,19 +303,19 @@ function delLabel() {
 /**
  * This part is used to modify Label
  */
-let btnModA = document.getElementById("a_select_btn");
-btnModA.addEventListener("click", function () {
-    modifyLabel('A')
-}, false);
-let btnModB = document.getElementById("b_select_btn");
-btnModB.addEventListener("click", function () {
-    modifyLabel('B')
-}, false);
-let btnModC = document.getElementById("c_select_btn");
-btnModC.addEventListener("click", function () {
-    modifyLabel('C')
-}, false);
-
+function modButtonSetUp() {
+    let mod_btn_grp = document.getElementById("type-select-btn-grp");
+    Object.keys(labelSet).forEach(function (type) {
+        let mod_btn = document.createElement("button");
+        mod_btn.id = type + "_mod_btn";
+        mod_btn.innerHTML = type + "-label";
+        mod_btn.addEventListener("click", function () {
+            modifyLabel(type)
+        }, false);
+        mod_btn.style.marginRight = "15px";
+        mod_btn_grp.append(mod_btn);
+    });
+}
 
 function modifyLabel(type) {
     if (selectedLabelId == null) {
@@ -318,15 +325,15 @@ function modifyLabel(type) {
     // console.log(selectedLabelId);
     // console.log(type);
 
-    for (let i = 0; i < labelData.length; i++) {
-        if (labelData[i].id === selectedLabelId) {
-            labelData[i].type = type;
+    for (let i = 1; i < labelData.length; i++) {
+        if (labelData[i][0] === selectedLabelId) {
+            labelData[i][1] = type;
         }
     }
 
     for (let i = 0; i < labelDataDisplay.length; i++) {
         if (labelDataDisplay[i][0].id === selectedLabelId) {
-            labelDataDisplay[i][0].itemStyle.color = colorSet[type];
+            labelDataDisplay[i][0].itemStyle.color = labelSet[type];
         }
     }
 
@@ -360,12 +367,14 @@ dom.ondrop = function (e) {
     Papa.parse(f, {
         complete: function (results) {
             let data = [];
-            for (let i = 0; i < 650000; i++) {
-                data.push([i, results.data[0][i]]);
+            for (let i = 0; i < results.data.length; i++) {
+                data.push([i, results.data[i][0]]);
             }
-            myChart.hideLoading();
             fileNameECG = f.name;
             myChart.setOption({
+                title:{
+                    text: fileNameECG
+                },
                 series: [
                     {
                         data: data
@@ -375,6 +384,7 @@ dom.ondrop = function (e) {
                     }
                 ]
             });
+            myChart.hideLoading();
         }
     });
 };
@@ -382,7 +392,3 @@ dom.ondrop = function (e) {
 if (option && typeof option === "object") {
     myChart.setOption(option, true);
 }
-
-/**
- *
- */
