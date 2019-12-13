@@ -2,26 +2,39 @@
 <html style="height: 100%" lang="en">
 <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" href="./fontawesome-free-5.12.0-web/css/all.css">
     <script type="text/javascript" src="./js/echarts-en.js"></script>
     <script type="text/javascript" src="./js/papaparse.min.js"></script>
     <script type="text/javascript" src="./js/FileSaver.js"></script>
+    <script type="text/javascript" src="./js/jquery-3.4.1.slim.min.js"></script>
+    <script type="text/javascript" src="./js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./js/popper.min.js"></script>
     <title>ECG</title>
 </head>
-<body>
+<body style="height: 100%">
 <div id="container" style="width: 1850px; height: 700px;"></div>
 <br>
-<div id="add-btn-grp">Add Label:&nbsp;&nbsp;</div>
-<br>
-<div id="type-select-btn-grp">Modify Label:&nbsp;&nbsp;
-</div>
-<br>
-<div id="del-btn-grp">Delete Label:&nbsp;&nbsp;
-    <button id="del_btn" type="button">Delete</button>
-</div>
-<p id="selector">Current Selected Label:</p>
-<div>
-    <input type="file" id="file_selector" value="Select File">
-    <input type="button" id="save_file" value="Save">
+<div style="float: left">
+    <div id="label-btn-grp" style="margin:20px"></div>
+    <div style="margin:20px">
+        <button id="del_btn" type="button" class="btn btn-danger" style="width: 150px; font-weight: bold"><span
+                class="fas fa-undo"></span>&nbsp;&nbsp;&nbsp;Delete
+        </button>
+    </div>
+    <div class="input-group mb-3" style="margin: 20px; width: 110%">
+        <div class="input-group-prepend">
+            <span class="input-group-text" style="font-weight: bold">Choose File</span>
+        </div>
+        <div class="custom-file">
+            <input type="file" class="custom-file-input" id="file_selector">
+            <label class="custom-file-label" for="file_selector" id="file_name_label">Choose Label Dataset</label>
+        </div>&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="button" id="save_file" class="btn btn-primary btn-success"
+                style="width: 150px; font-weight: bold">
+            <span class="fas fa-download"></span>&nbsp;&nbsp;&nbsp;Save
+        </button>
+    </div>
 </div>
 <script type="text/javascript" src="js/ecg.js"></script>
 </body>

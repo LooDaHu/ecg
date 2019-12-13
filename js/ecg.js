@@ -4,23 +4,17 @@ let selectedMarkAreaIndex = [];
 let selectedLabelId = null;
 let fileNameECG = "";
 let option;
-// let labelData = [[{id: 1, name: 'Test1', xAxis: 1,}, {xAxis: 3}],
-//     [{id: 2, name: 'Test2', xAxis: 11,}, {xAxis: 13}]];
 let labelData = [];
 let labelDataDisplay = [];
-const labelSet = {"Q": '#FF00F0', "N": '#F0FF00', "R": '#00F0FF', "B": '#02FF00'};
+const labelSet = {"Q": '#FF00F0', "N": '#F0FF00', "R": '#00F0FF'};
 const defaultColor = '#808080';
 
-addButtonSetUp();
-modButtonSetUp();
-
-dom.oncontextmenu = function () {
-    return false;
-};
+labelButtonSetUp();
 
 document.ondragover = function (e) {
     e.preventDefault();
 };
+
 document.ondrop = function (e) {
     e.preventDefault();
 };
@@ -28,6 +22,24 @@ document.ondrop = function (e) {
 dom.ondragover = function (e) {
     e.preventDefault();
 };
+
+dom.oncontextmenu = function (e) {
+    e.preventDefault();
+    if (selectedLabelId === null) {
+        return;
+    }
+    deselected();
+};
+
+function deselected() {
+    if (selectedLabelId === null) {
+        return;
+    }
+    let type = labelDataDisplay[selectedLabelId][0].name;
+    labelDataDisplay[selectedLabelId][0].itemStyle.color = labelSet[type];
+    selectedLabelId = null;
+    refreshAllLabel();
+}
 
 option = {
     title: {
@@ -52,7 +64,7 @@ option = {
         },
         throttleType: 'debounce',
         transformable: false,
-        throttleDelay: 1000
+        throttleDelay: 500
     },
     dataZoom: [{
         type: 'inside',
@@ -89,12 +101,6 @@ option = {
             data: [],
 
             markArea: {
-                name: 'redArea',
-                label: {
-                    position: 'inside',
-                    fontSize: 20,
-                    color: '#000000'
-                },
                 data: labelDataDisplay
             }
         }
@@ -111,8 +117,10 @@ myChart.on('brushSelected', renderBrushed);
 function renderBrushed(params) {
     let brushComponent = params.batch[0];
     let rawIndices = brushComponent.selected[0].dataIndex;
-    selectedMarkAreaIndex = [rawIndices[0], rawIndices[rawIndices.length - 1]];
-    console.log(selectedMarkAreaIndex);//print start and end index of data point
+    if (rawIndices.length !== 0){
+        selectedMarkAreaIndex = [rawIndices[0], rawIndices[rawIndices.length - 1]];
+        deselected();
+    }
 }
 
 /**
@@ -120,13 +128,10 @@ function renderBrushed(params) {
  *  click part
  */
 myChart.on('click', function (param) {
-    // console.log(param);
-    let id = param.data.id;
-    document.getElementById('selector').innerHTML = 'Current selected Label:' + ' Id=' + id;
-    // data.pop();
-    selectedLabelId = id;
-    // refreshAllLabel();
-
+    deselected();
+    selectedLabelId = param.dataIndex;
+    labelDataDisplay[selectedLabelId][0].itemStyle.color = '#808080';
+    refreshAllLabel();
 });
 
 
@@ -139,26 +144,21 @@ inputElement.addEventListener("change", loadLabelFile, false);
 
 function loadLabelFile() {
     let selectedFile = document.getElementById("file_selector").files[0];//获取读取的File对象
-    // let reader = new FileReader();// read the file
-    // reader.readAsText(selectedFile);// read the content of the file
+    let file_name_label = document.getElementById("file_name_label");
+    file_name_label.innerHTML = selectedFile.name;
     Papa.parse(selectedFile, {
         complete: function (results) {
-            // console.log(results.data);
-            // console.log(results.data.length);
             let csv_data = results.data;
             let size_of_data = results.data.length;
             let label_data_display = [];
             for (let i = 1; i < size_of_data; i++) {
-                let id = csv_data[i][0];
-                let type = csv_data[i][1];
-                let start_x = csv_data[i][2];
-                let end_x = csv_data[i][3];
-                let name = "Label Id: " + id + "\n" + "Label Type: " + type;
+                let start_x = csv_data[i][0];
+                let end_x = csv_data[i][1];
+                let type = csv_data[i][2];
                 let color = labelSet[type];
                 label_data_display.push(
                     [{
-                        id: id,
-                        name: name,
+                        name: type,
                         xAxis: start_x,
                         itemStyle: {
                             color: color
@@ -169,6 +169,7 @@ function loadLabelFile() {
                 );
             }
             labelDataDisplay = label_data_display;
+            csv_data.shift();
             labelData = csv_data;
             refreshAllLabel();
         }
@@ -187,9 +188,11 @@ function saveHandler() {
         window.alert("You have't load any ECG data. Please select one.");
         return;
     }
+    let label_data = labelData.concat();
+    label_data.unshift(["start_index","end_index","type"]);
     let current_time = '_' + get_current_time();
     let file_name = fileNameECG.split('.')[0];
-    let csvData = labelData.map(e => e.join(",")).join("\n");
+    let csvData = label_data.map(e => e.join(",")).join("\n");
     let BOM = "\uFEFF";
     csvData = BOM + csvData;
     let blob = new Blob([csvData], {type: "text/csv;charset=utf-8"});
@@ -210,17 +213,22 @@ function get_current_time() {
  * This part is used to add Label
  */
 
-function addButtonSetUp() {
-    let add_btn_grp = document.getElementById("add-btn-grp");
+function labelButtonSetUp() {
+    let label_btn_grp = document.getElementById("label-btn-grp");
     Object.keys(labelSet).forEach(function (type) {
-        let add_btn = document.createElement("button");
-        add_btn.id = type + "_add_btn";
-        add_btn.innerHTML = type + "-label";
-        add_btn.addEventListener("click", function () {
-            addLabel(type)
+        let label_btn = document.createElement("button");
+        label_btn.id = type + "_label_btn";
+        label_btn.innerHTML = type + "-Label";
+        label_btn.addEventListener("click", function () {
+            addLabel(type) //change here
         }, false);
-        add_btn.style.marginRight = "15px";
-        add_btn_grp.append(add_btn);
+        label_btn.style.marginRight = "15px";
+        label_btn.style.fontWeight = "bold";
+        label_btn.style.backgroundColor = labelSet[type];
+        label_btn.style.borderColor = labelSet[type];
+        label_btn.style.color = '#000000';
+        label_btn.className = "btn btn-primary";
+        label_btn_grp.append(label_btn);
     });
 }
 
@@ -234,14 +242,12 @@ function addLabel(type) {
         window.alert("You haven't select any area. Please select one.");
         return;
     }
-    let id = getLastId() + 1;
     let color = labelSet[type];
     let start_index = selectedMarkAreaIndex[0];
     let end_index = selectedMarkAreaIndex[1];
     labelDataDisplay.push(
         [{
-            id: id,
-            name: name,
+            name: type,
             xAxis: start_index,
             itemStyle: {
                 color: color
@@ -250,23 +256,11 @@ function addLabel(type) {
             xAxis: end_index
         }]
     );
-    if (id === 1 && labelData.length === 0) {
-        labelData.push(["id", "type", "start_index", "end_index"]);
-    }
-    labelData.push([id, type, start_index, end_index]);
 
+    labelData.push([start_index, end_index, type]);
     selectedMarkAreaIndex = [];
     refreshAllLabel();
 }
-
-function getLastId() {
-    if (labelData.length === 0 || labelData.length === 1) {
-        return 0;
-    } else {
-        return Number(labelData[labelData.length - 1][0]);
-    }
-}
-
 
 /**
  * This part is used to delete Label
@@ -282,66 +276,12 @@ function delLabel() {
     if (labelData.length === 0) {
         window.alert("No label left.");
     }
-    for (let i = 1; i < labelData.length; i++) {
-        if (labelData[i][0] === selectedLabelId) {
-            labelData.splice(i, 1);
-        }
-    }
-
-    for (let i = 0; i < labelDataDisplay.length; i++) {
-        if (labelDataDisplay[i][0].id === selectedLabelId) {
-            labelDataDisplay.splice(i, 1);
-        }
-    }
-
+    labelData.splice(selectedLabelId, 1);
+    labelDataDisplay.splice(selectedLabelId, 1);
     refreshAllLabel();
     selectedLabelId = null;
-    document.getElementById('selector').innerHTML = 'Current selected Label:';
 }
 
-
-/**
- * This part is used to modify Label
- */
-function modButtonSetUp() {
-    let mod_btn_grp = document.getElementById("type-select-btn-grp");
-    Object.keys(labelSet).forEach(function (type) {
-        let mod_btn = document.createElement("button");
-        mod_btn.id = type + "_mod_btn";
-        mod_btn.innerHTML = type + "-label";
-        mod_btn.addEventListener("click", function () {
-            modifyLabel(type)
-        }, false);
-        mod_btn.style.marginRight = "15px";
-        mod_btn_grp.append(mod_btn);
-    });
-}
-
-function modifyLabel(type) {
-    if (selectedLabelId == null) {
-        window.alert("You haven't select any label. Please select one.");
-        return;
-    }
-    // console.log(selectedLabelId);
-    // console.log(type);
-
-    for (let i = 1; i < labelData.length; i++) {
-        if (labelData[i][0] === selectedLabelId) {
-            labelData[i][1] = type;
-        }
-    }
-
-    for (let i = 0; i < labelDataDisplay.length; i++) {
-        if (labelDataDisplay[i][0].id === selectedLabelId) {
-            labelDataDisplay[i][0].itemStyle.color = labelSet[type];
-        }
-    }
-
-    refreshAllLabel();
-    selectedLabelId = null;
-    document.getElementById('selector').innerHTML = 'Current selected Label:';
-
-}
 
 function refreshAllLabel() {
     myChart.setOption({
@@ -360,6 +300,7 @@ function refreshAllLabel() {
  * Get ECG data
  * @param e
  */
+//TODO add file extension name check
 dom.ondrop = function (e) {
     let list = e.dataTransfer.files;
     let f = list[0];
@@ -372,7 +313,7 @@ dom.ondrop = function (e) {
             }
             fileNameECG = f.name;
             myChart.setOption({
-                title:{
+                title: {
                     text: fileNameECG
                 },
                 series: [
