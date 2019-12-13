@@ -1,1 +1,1 @@
-ECG link[[https://github.com/LooDaHu/ecg/blob/master/ecg_index.html]]
+ECG link[[https://https://loodahu.github.io/ecg/ecg_index.html]]
