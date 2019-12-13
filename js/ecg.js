@@ -117,8 +117,8 @@ myChart.on('brushSelected', renderBrushed);
 function renderBrushed(params) {
     let brushComponent = params.batch[0];
     let rawIndices = brushComponent.selected[0].dataIndex;
+    selectedMarkAreaIndex = [rawIndices[0], rawIndices[rawIndices.length - 1]];
     if (rawIndices.length !== 0){
-        selectedMarkAreaIndex = [rawIndices[0], rawIndices[rawIndices.length - 1]];
         deselected();
     }
 }
