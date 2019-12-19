@@ -14,7 +14,8 @@ This project is powered by:
 This is a project for data visualization and labeling of  ECG dataset based on JavaScript and HTML. This project is aimming to help 
 ## Data Format ?
 ## How to Use ?
-[![Intro to ECG Label Sys](https://img.youtube.com/vi/p2C38xatN_c/maxresdefault.jpg)](https://youtu.be/p2C38xatN_c)
+This is a simple video to introduce how to use.<br>
+[![Intro to ECG Label Sys](https://img.youtube.com/vi/p2C38xatN_c/0.jpg)](https://youtu.be/p2C38xatN_c)
 ## Use it on Github
 [Click Me !](https://loodahu.github.io/ecg/ecg_index.html)
 ## I don't want those label, No worry !
