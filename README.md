@@ -1,5 +1,5 @@
 # ECG Label System
-ECG Label System is a visualization and label-creating software for the ECG dataset. It is wriiten in ![HTML5](https://www.w3.org/html/logo/badge/html5-badge-h-css3.png "HTML5 w/ CSS3") and <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/JavaScript-logo.png/240px-JavaScript-logo.png" width="75" alt="JavaScript" title="JavaScript">
+ECG Label System is a visualization and label-creating software for the ECG dataset. It is writen in ![HTML5](https://www.w3.org/html/logo/badge/html5-badge-h-css3.png "HTML5 w/ CSS3") and <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/JavaScript-logo.png/240px-JavaScript-logo.png" width="75" alt="JavaScript" title="JavaScript">
 
 This project is powered by:
 * Echarts (https://github.com/apache/incubator-echarts)
