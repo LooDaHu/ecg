@@ -6,23 +6,37 @@ let fileNameECG = "";
 let option;
 let labelData = [];
 let labelDataDisplay = [];
-const labelSet = {"Q": '#FF00F0', "N": '#F0FF00', "R": '#00F0FF'};
+let labelSet = {};
 const defaultColor = '#808080';
 
-labelButtonSetUp();
+readLabelSetFile("label_setting.json", function(text){
+    labelSet = JSON.parse(text);
+    labelSetCheck(labelSet);
+    labelButtonSetUp(); // Set Dynamic Label buttons
+});
 
+
+/**
+ * Disable browser-default on-dragover action
+ * @param e
+ */
 document.ondragover = function (e) {
     e.preventDefault();
 };
 
+/**
+ * Disable browser-default on-drop action
+ * @param e
+ */
 document.ondrop = function (e) {
     e.preventDefault();
 };
 
-dom.ondragover = function (e) {
-    e.preventDefault();
-};
 
+/**
+ * change browser-default right-click menu to deselect function
+ * @param e event
+ */
 dom.oncontextmenu = function (e) {
     e.preventDefault();
     if (selectedLabelId === null) {
@@ -31,16 +45,23 @@ dom.oncontextmenu = function (e) {
     deselected();
 };
 
+/***
+ * Deselect function, deselect current selected label.
+ */
 function deselected() {
     if (selectedLabelId === null) {
-        return;
+        return; // If No label is selected, then do nothing
     }
-    let type = labelDataDisplay[selectedLabelId][0].name;
-    labelDataDisplay[selectedLabelId][0].itemStyle.color = labelSet[type];
-    selectedLabelId = null;
-    refreshAllLabel();
+    // If some label is selected
+    let type = labelDataDisplay[selectedLabelId][0].name; // Get the type of label
+    labelDataDisplay[selectedLabelId][0].itemStyle.color = labelSet[type]; // Give the color back to the selected label
+    selectedLabelId = null; // reset selected label
+    refreshAllLabel(); // refresh all displayed label
 }
 
+
+// Echarts initial option setting here
+// Echarts option setting list https://echarts.apache.org/en/option.html#title
 option = {
     title: {
         left: 'center',
@@ -109,44 +130,54 @@ option = {
 
 
 /**
- * This part is used to get start index and end index
- * brush part
+ * This block is for brush tool
  */
-myChart.on('brushSelected', renderBrushed);
-
+// Block Starts
+myChart.on('brushSelected', renderBrushed); // Use "on" function to bind brushSelected event https://echarts.apache.org/en/api.html#echartsInstance.on
+/**
+ * brushSelected handler function
+ * @param params params is the return of the event, will be the related values
+ */
 function renderBrushed(params) {
     let brushComponent = params.batch[0];
-    let rawIndices = brushComponent.selected[0].dataIndex;
-    selectedMarkAreaIndex = [rawIndices[0], rawIndices[rawIndices.length - 1]];
-    if (rawIndices.length !== 0){
+    let rawIndices = brushComponent.selected[0].dataIndex; // Get all indices of selected data points
+    selectedMarkAreaIndex = [rawIndices[0], rawIndices[rawIndices.length - 1]]; // in the format of [start_index, end_index]
+    if (rawIndices.length !== 0) { // if some area is selected, deselect the current selected label
         deselected();
     }
 }
 
+// Block Ends
+
 /**
- *  This part is used to get id of labels when click it
- *  click part
+ * This block is for selecting label
  */
+// Block Starts
 myChart.on('click', function (param) {
-    deselected();
-    selectedLabelId = param.dataIndex;
-    labelDataDisplay[selectedLabelId][0].itemStyle.color = '#808080';
-    refreshAllLabel();
+    deselected(); // First of first, clear all selected label
+    selectedLabelId = param.dataIndex; // Get the dataIndex of the selected label
+    labelDataDisplay[selectedLabelId][0].itemStyle.color = '#808080'; // Change the color of the selected label to grey
+    refreshAllLabel(); // refresh the display
 });
+// Block Ends
 
 
 /**
- * This part is used to select file
- * @type {HTMLElement}
+ * This block is for load label files
  */
+// Block Starts
 let inputElement = document.getElementById("file_selector");
 inputElement.addEventListener("change", loadLabelFile, false);
 
 function loadLabelFile() {
-    let selectedFile = document.getElementById("file_selector").files[0];//获取读取的File对象
+    let selectedFile = document.getElementById("file_selector").files[0];
     let file_name_label = document.getElementById("file_name_label");
+    if (!extensionNameCheck(selectedFile.name)) {
+        window.alert("The format of label data file is not correct !");
+        return;
+    }
     file_name_label.innerHTML = selectedFile.name;
-    Papa.parse(selectedFile, {
+    Papa.parse(selectedFile, { //Use Papaparse to parse label_file.csv
         complete: function (results) {
             let csv_data = results.data;
             let size_of_data = results.data.length;
@@ -177,9 +208,12 @@ function loadLabelFile() {
 
 }
 
+// Block Ends
+
 /**
- * This part is used to save the file
+ * This block is for saving labels into CSV file
  */
+// Block Starts
 let saveFileButton = document.getElementById("save_file");
 saveFileButton.addEventListener("click", saveHandler, false);
 
@@ -189,7 +223,7 @@ function saveHandler() {
         return;
     }
     let label_data = labelData.concat();
-    label_data.unshift(["start_index","end_index","type"]);
+    label_data.unshift(["start_index", "end_index", "type"]);
     let current_time = '_' + get_current_time();
     let file_name = fileNameECG.split('.')[0];
     let csvData = label_data.map(e => e.join(",")).join("\n");
@@ -209,10 +243,13 @@ function get_current_time() {
         + date.getSeconds();
 }
 
-/**
- * This part is used to add Label
- */
+// Block Ends
 
+
+/**
+ * This block is for Add-Button setting
+ */
+// Block Starts
 function labelButtonSetUp() {
     let label_btn_grp = document.getElementById("label-btn-grp");
     Object.keys(labelSet).forEach(function (type) {
@@ -232,7 +269,12 @@ function labelButtonSetUp() {
     });
 }
 
+// Block Ends
 
+/**
+ * Add-labels function
+ * @param type the type of labels
+ */
 function addLabel(type) {
     if (selectedMarkAreaIndex.length === 0) {
         window.alert("You haven't select any area. Please select one.");
@@ -245,7 +287,7 @@ function addLabel(type) {
     let color = labelSet[type];
     let start_index = selectedMarkAreaIndex[0];
     let end_index = selectedMarkAreaIndex[1];
-    labelDataDisplay.push(
+    labelDataDisplay.push( // Push display data into display data array
         [{
             name: type,
             xAxis: start_index,
@@ -257,17 +299,23 @@ function addLabel(type) {
         }]
     );
 
-    labelData.push([start_index, end_index, type]);
+    labelData.push([start_index, end_index, type]); // Push data into data array
     selectedMarkAreaIndex = [];
     refreshAllLabel();
 }
 
 /**
- * This part is used to delete Label
+ * This block is for Delete-Button setting
  */
+// Block Starts
 let delLabelButton = document.getElementById("del_btn");
 delLabelButton.addEventListener("click", delLabel, false);
 
+// Block Ends
+
+/**
+ * Delete-labels function
+ */
 function delLabel() {
     if (selectedLabelId == null) {
         window.alert("You haven't select any label. Please select one.");
@@ -282,7 +330,9 @@ function delLabel() {
     selectedLabelId = null;
 }
 
-
+/**
+ * Refresh-labels function
+ */
 function refreshAllLabel() {
     myChart.setOption({
         series: [
@@ -297,13 +347,16 @@ function refreshAllLabel() {
 }
 
 /**
- * Get ECG data
+ * Get ECG data from ecg_data.csv, and display the data
  * @param e
  */
-//TODO add file extension name check
 dom.ondrop = function (e) {
     let list = e.dataTransfer.files;
     let f = list[0];
+    if (!extensionNameCheck(f.name)) {
+        window.alert("The format of ECG data file is not correct !");
+        return;
+    }
     myChart.showLoading();
     Papa.parse(f, {
         complete: function (results) {
@@ -329,6 +382,53 @@ dom.ondrop = function (e) {
         }
     });
 };
+
+/**
+ * extension name check function
+ * @param file_name
+ * @returns {boolean} Return false if match, else return true
+ */
+function extensionNameCheck(file_name) {
+    let csv_extension_name = "csv";
+    let index = file_name.lastIndexOf(".");
+    let ext = file_name.substr(index + 1);
+    return ext === csv_extension_name;
+}
+
+/**
+ * Check if the label set is appropriate
+ * @param labelSetting Global label set
+ */
+function labelSetCheck(labelSetting) {
+    let reg_color = /^[#][0-9a-fA-F]{6}$/;
+    // let reg_type = /^[a-zA-Z]+$/;
+    for (let type in labelSetting) {
+        if(labelSetting.hasOwnProperty(type)){
+            if (type === '') {
+                window.alert("The type of label can't be empty string !");
+            }
+            if (!reg_color.test(labelSetting[type])) {
+                window.alert("Invalid Color Format !");
+            }
+            if (labelSetting[type] === '#808080') {
+                window.alert("#808080 is not recommended as label color !");
+            }
+        }
+    }
+}
+
+function readLabelSetFile(file, callback) {
+    let rawFile = new XMLHttpRequest();
+    rawFile.overrideMimeType("application/json");
+    rawFile.open("GET", file, true);
+    rawFile.onreadystatechange = function () {
+        if (rawFile.readyState === 4 && rawFile.status === 200) {
+            callback(rawFile.responseText);
+        }
+    };
+    rawFile.send(null);
+}
+
 
 if (option && typeof option === "object") {
     myChart.setOption(option, true);
