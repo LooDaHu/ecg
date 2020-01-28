@@ -48,7 +48,7 @@ This is a simple video to introduce how to use.<br>
 ## Use it on Github
 [Click Me !](https://loodahu.github.io/ecg/ecg_index.html)
 ## I don't want those labels, No worry !
-It's possible for you to change the Label. Just need you to modify [label_setting.json](https://github.com/LooDaHu/ecg/blob/master/label_setting.json) 
+It's possible for you to change the Label. Just need you to modify labelSet variable in [ecg,js](https://github.com/LooDaHu/ecg/blob/master/js/ecg.js) 
 ```
 {
   "Q": "#FF00F0",
@@ -58,7 +58,7 @@ It's possible for you to change the Label. Just need you to modify [label_settin
   "T": "#ADFF2F"
 }
 ```
-This setting file is a JSON file. The key is the names of labels and values are color in 256-color format.
+The key is the names of labels and values are color in 256-color format. Just change those values and you can get the labels you want.
 Note:
 1) Empty label is no recommended.
 2) #808080 is not recommended as a label color due to the conflict with the brush tool.
