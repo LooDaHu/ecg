@@ -6,15 +6,18 @@ let fileNameECG = "";
 let option;
 let labelData = [];
 let labelDataDisplay = [];
-let labelSet = {};
+let labelSet = {
+    "Q": "#FF00F0",
+    "R": "#00F0FF",
+    "S": "#F0FF00",
+    "P": "#FF7F24",
+    "T": "#ADFF2F"
+};
 const defaultColor = '#808080';
 
-readLabelSetFile("label_setting.json", function(text){
-    labelSet = JSON.parse(text);
-    labelSetCheck(labelSet);
-    labelButtonSetUp(); // Set Dynamic Label buttons
-});
 
+labelSetCheck(labelSet);
+labelButtonSetUp();
 
 /**
  * Disable browser-default on-dragover action
@@ -403,7 +406,7 @@ function labelSetCheck(labelSetting) {
     let reg_color = /^[#][0-9a-fA-F]{6}$/;
     // let reg_type = /^[a-zA-Z]+$/;
     for (let type in labelSetting) {
-        if(labelSetting.hasOwnProperty(type)){
+        if (labelSetting.hasOwnProperty(type)) {
             if (type === '') {
                 window.alert("The type of label can't be empty string !");
             }
@@ -415,18 +418,6 @@ function labelSetCheck(labelSetting) {
             }
         }
     }
-}
-
-function readLabelSetFile(file, callback) {
-    let rawFile = new XMLHttpRequest();
-    rawFile.overrideMimeType("application/json");
-    rawFile.open("GET", file, true);
-    rawFile.onreadystatechange = function () {
-        if (rawFile.readyState === 4 && rawFile.status === 200) {
-            callback(rawFile.responseText);
-        }
-    };
-    rawFile.send(null);
 }
 
 
